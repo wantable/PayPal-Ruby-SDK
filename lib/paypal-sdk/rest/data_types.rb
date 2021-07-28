@@ -180,12 +180,12 @@ module PayPal::SDK
       class BillingAgreementToken < Base
         def self.load_members
           object_of :description, String
-          object_of :payer, PayPal::SDK::REST::DataTypes::Payer
-          object_of :plan, PayPal::SDK::REST::DataTypes::Plan
-          object_of :shipping_address, PayPal::SDK::REST::DataTypes::ShippingAddress
+          object_of :payer, Payer
+          object_of :plan, Plan
+          object_of :shipping_address, ShippingAddress
           object_of :token_id, String
 
-          array_of  :links, PayPal::SDK::REST::DataTypes::Links
+          array_of  :links, Links
         end
 
         include RequestDataType
@@ -199,18 +199,18 @@ module PayPal::SDK
       end
 
       # https://github.com/KanisiTech/PayPal-Ruby-SDK/blob/master/lib/paypal-sdk/rest/data_types.rb#L554
-      class PayPal::SDK::REST::DataTypes::BillingAgreement < PayPal::SDK::REST::DataTypes::Base
+      class BillingAgreement < Base
         def self.load_members
           object_of :create_time, String
           object_of :description, String
           object_of :id, String
-          object_of :payer, PayPal::SDK::REST::DataTypes::Payer
-          object_of :plan, PayPal::SDK::REST::DataTypes::Plan
+          object_of :payer, Payer
+          object_of :plan, Plan
           object_of :state, String
           object_of :token_id, String
           object_of :update_time, String
 
-          array_of  :links, PayPal::SDK::REST::DataTypes::Links
+          array_of  :links, Links
         end
 
         include RequestDataType
