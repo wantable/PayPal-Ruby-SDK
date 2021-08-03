@@ -8,7 +8,3 @@ rvm:
 script: "bundle exec rspec"
 
 sudo: false
-
-notifications:
-  recipients:
-    - DL-PP-Ruby-SDK@paypal.com

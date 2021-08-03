@@ -176,11 +176,58 @@ module PayPal::SDK
         include RequestDataType
       end
 
+      # https://github.com/KanisiTech/PayPal-Ruby-SDK/blob/master/lib/paypal-sdk/rest/data_types.rb#L578
       class BillingAgreementToken < Base
         def self.load_members
+          object_of :description, String
+          object_of :payer, Payer
+          object_of :plan, Plan
+          object_of :shipping_address, ShippingAddress
+          object_of :token_id, String
+
+          array_of  :links, Links
         end
 
         include RequestDataType
+
+        def create()
+          path = "v1/billing-agreements/agreement-tokens"
+          response = api.post(path, self.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+      end
+
+      # https://github.com/KanisiTech/PayPal-Ruby-SDK/blob/master/lib/paypal-sdk/rest/data_types.rb#L554
+      class BillingAgreement < Base
+        def self.load_members
+          object_of :create_time, String
+          object_of :description, String
+          object_of :id, String
+          object_of :payer, Payer
+          object_of :plan, Plan
+          object_of :state, String
+          object_of :token_id, String
+          object_of :update_time, String
+
+          array_of  :links, Links
+        end
+
+        include RequestDataType
+
+        def create()
+          path = "v1/billing-agreements/agreements"
+          response = api.post(path, self.to_hash, http_header)
+          self.merge!(response)
+          success?
+        end
+
+        def cancel()
+          path = "v1/billing-agreements/agreements/#{self.id}/cancel"
+          response = api.post(path, {}, http_header)
+          self.merge!(response)
+          success?
+        end
       end
 
       class CountryCode < Base
@@ -304,6 +351,7 @@ module PayPal::SDK
         def self.load_members
           object_of :credit_card, CreditCard
           object_of :credit_card_token, CreditCardToken
+          object_of :billing, Billing
         end
       end
 
