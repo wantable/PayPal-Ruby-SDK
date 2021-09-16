@@ -190,9 +190,19 @@ module PayPal::SDK
 
         include RequestDataType
 
-        def create()
+        # https://developer.paypal.com/docs/limited-release/fraudnet/integrate/add-parameter-block/#configuration-parameters
+        # paypal_client_metadata_id has to match the value in the fraudNet object f key
+        def create(paypal_client_metadata_id = nil)
           path = "v1/billing-agreements/agreement-tokens"
-          response = api.post(path, self.to_hash, http_header)
+
+          header = http_header
+          unless paypal_client_metadata_id.nil?
+            header.merge!({
+              "PAYPAL-CLIENT-METADATA-ID" => paypal_client_metadata_id
+            })
+          end
+
+          response = api.post(path, self.to_hash, header)
           self.merge!(response)
           success?
         end
