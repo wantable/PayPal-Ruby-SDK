@@ -104,7 +104,7 @@ module PayPal::SDK::Core
           # snakecase("errorMessage")
           # # error_message
           def snakecase(string)
-            string.to_s.gsub(/([a-z])([A-Z])/, '\1_\2').gsub(/([A-Z])([A-Z][a-z])/, '\1_\2').downcase
+            @snakecases[string] ||= string.to_s.gsub(/([a-z])([A-Z])/, '\1_\2').gsub(/([A-Z])([A-Z][a-z])/, '\1_\2').downcase
           end
 
         end

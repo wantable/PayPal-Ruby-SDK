@@ -5,7 +5,6 @@ module PayPal
   module SDK
     module REST
       class API < Core::API::REST
-#        include Services
 
         def initialize(environment = nil, options = {})
           super("", environment, options)
