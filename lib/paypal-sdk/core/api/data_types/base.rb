@@ -17,7 +17,13 @@ module PayPal::SDK::Core
 
         HashOptions = { :attribute => true, :namespace => true, :symbol => false }
         ContentKey  = :value
+
+        SNAKECASE_REGEXP_REPLACER = '\1_\2'.freeze
         @@snakecases = {}
+        @@member_name_memo = {}
+        @@member_name_setter = {}
+        @@member_name_var_name = {}
+        MEMBERS = "@members".freeze
 
         include SimpleTypes
         include Logging
@@ -37,9 +43,21 @@ module PayPal::SDK::Core
             @members ||=
               begin
                 superclass.load_members if defined? superclass.load_members
-                parent_members = superclass.instance_variable_get("@members")
+                parent_members = superclass.instance_variable_get(MEMBERS)
                 parent_members ? parent_members.dup : Util::OrderedHash.new
               end
+          end
+
+          def member_name_sym(member_name)
+            @@member_name_memo[member_name] ||= member_name.to_sym
+          end
+
+          def member_name_setter(member_name)
+            @@member_name_setter[member_name] ||= "#{member_name}="
+          end
+
+          def member_name_var_name(member_name)
+            @@member_name_var_name[member_name] ||= "@#{member_name}"
           end
 
           # Add Field to class variable hash and generate methods
@@ -49,32 +67,38 @@ module PayPal::SDK::Core
           #   # alias_method  :error_message,  :errorMessage
           #   # alias_method  :error_message=, :errorMessage=
           def add_member(member_name, klass, options = {})
-            member_name = member_name.to_sym
+            member_name = member_name_sym(member_name)
             return if members[member_name]
             members[member_name] = options.merge( :type => klass )
-            member_variable_name = "@#{member_name}"
-            define_method "#{member_name}=" do |value|
+            member_variable_name = member_name_var_name(member_name)
+
+            define_method member_name_setter(member_name) do |value|
               object = options[:array] ? convert_array(value, klass) : convert_object(value, klass)
               instance_variable_set(member_variable_name, object)
             end
+
             default_value = ( options[:array] ? [] : ( klass < Base ? Util::OrderedHash.new : nil ) )
+
             define_method member_name do |&block|
-              value = instance_variable_get(member_variable_name) || ( default_value && send("#{member_name}=", default_value) )
+              value = instance_variable_get(member_variable_name) || ( default_value && send(member_name_setter(member_name), default_value) )
               value.instance_eval(&block) if block
               value
             end
+
             define_alias_methods(member_name, options)
           end
 
           # Define alias methods for getter and setter
           def define_alias_methods(member_name, options)
             snakecase_name = snakecase(member_name)
+
             alias_method snakecase_name, member_name
             alias_method "#{snakecase_name}=", "#{member_name}="
-            alias_method "#{options[:namespace]}:#{member_name}=", "#{member_name}=" if options[:namespace]
+            alias_method "#{options[:namespace]}:#{member_name}=", member_name_setter(member_name) if options[:namespace]
+
             if options[:attribute]
-              alias_method "@#{member_name}=", "#{member_name}="
-              alias_method "@#{options[:namespace]}:#{member_name}=", "#{member_name}=" if options[:namespace]
+              alias_method member_name_var_name(member_name), member_name_setter(member_name)
+              alias_method "@#{options[:namespace]}:#{member_name}=", member_name_setter(member_name) if options[:namespace]
             end
           end
 
@@ -105,7 +129,8 @@ module PayPal::SDK::Core
           # snakecase("errorMessage")
           # # error_message
           def snakecase(string)
-            @@snakecases[string] ||= string.to_s.gsub(/([a-z])([A-Z])/, '\1_\2').gsub(/([A-Z])([A-Z][a-z])/, '\1_\2').downcase
+            @@snakecases[string] ||= string.to_s.gsub(/([a-z])([A-Z])/, SNAKECASE_REGEXP_REPLACER)
+                                                .gsub(/([A-Z])([A-Z][a-z])/, SNAKECASE_REGEXP_REPLACER).downcase
           end
 
         end
