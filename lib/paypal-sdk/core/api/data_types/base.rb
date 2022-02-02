@@ -111,6 +111,7 @@ module PayPal::SDK::Core
 
         # Initialize options.
         def initialize(options = {}, &block)
+          @snakecases = {}
           merge!(options, &block)
         end
 
